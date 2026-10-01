@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Year & Month AI Image Finder</title>
+    <meta name="description" content="Find an image by year and month with a modern, AI-style search experience." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <nav class="navbar container">
+          <a href="{{ url_for('index') }}" class="brand" aria-label="Go to home page">
+            <span class="brand-mark">Y</span>
+            <span>Year &amp; Month AI Image Finder</span>
+          </a>
+
+          <div class="nav-links">
+            <a href="{{ url_for('index') }}" class="active">Home</a>
+            <a href="{{ url_for('admin_page') }}">Admin Upload</a>
+            <a href="#about">About</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero container">
+          <div class="hero-copy">
+            <span class="eyebrow">Smart memory search</span>
+            <h1>Find Your Memory by Year &amp; Month</h1>
+            <p>
+              Enter a year and month to instantly discover the image stored for that date.
+            </p>
+          </div>
+
+          <div class="search-panel glass-card">
+            <form id="searchForm" method="POST" action="{{ url_for('find_image') }}" novalidate>
+              <div class="search-grid">
+                <div class="field-group">
+                  <label for="year">Year</label>
+                  <input
+                    id="year"
+                    name="year"
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    value="{{ searched_year if searched_year else '' }}"
+                    placeholder="2026"
+                    aria-label="Year"
+                  />
+                </div>
+
+                <div class="field-group">
+                  <label for="month">Month</label>
+                  <select id="month" name="month" aria-label="Month">
+                    <option value="">Select a month</option>
+                    {% for month_name in [
+                      'January','February','March','April','May','June',
+                      'July','August','September','October','November','December'
+                    ] %}
+                      <option value="{{ month_name }}" {% if searched_month == month_name %}selected{% endif %}>{{ month_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-group full-width">
+                <label for="search_query">Natural language search</label>
+                <input
+                  id="search_query"
+                  name="search_query"
+                  type="text"
+                  value="{{ search_query }}"
+                  placeholder="Ask: Show me the image from September 2026"
+                  aria-label="Natural language search"
+                />
+              </div>
+
+              <button type="submit" class="primary-btn" id="searchButton">
+                <span class="button-text">Search image</span>
+                <span class="spinner hidden" aria-hidden="true"></span>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <section class="result-section container" id="results">
+          {% if performed_search %}
+            {% if error_message %}
+              <div class="state-card error-state" role="alert">
+                <div class="state-icon">!</div>
+                <div>
+                  <h3>Search issue</h3>
+                  <p>{{ error_message }}</p>
+                </div>
+              </div>
+            {% elif results %}
+              <div class="result-header">
+                <div>
+                  <span class="eyebrow accent">Results</span>
+                  <h2>{{ searched_month }} {{ searched_year }}</h2>
+                </div>
+                <a href="{{ url_for('index') }}" class="secondary-btn">Search Again</a>
+              </div>
+
+              <div class="image-gallery">
+                {% for image in results %}
+                  <article class="result-card">
+                    <div class="image-frame lightbox-trigger" data-image="{{ url_for('uploaded_file', filename=image.filename) }}" data-alt="Image from {{ image.month }} {{ image.year }}">
+                      <img src="{{ url_for('uploaded_file', filename=image.filename) }}" alt="Image from {{ image.month }} {{ image.year }}" />
+                    </div>
+                    <div class="result-meta">
+                      <span>{{ image.month }}</span>
+                      <strong>{{ image.year }}</strong>
+                    </div>
+                    <p>{{ image.filename }}</p>
+                  </article>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="state-card empty-state">
+                <div class="state-icon">◌</div>
+                <div>
+                  <h3>No image found</h3>
+                  <p>Sorry, we couldn't find an image for {{ searched_month }} {{ searched_year }}.</p>
+                  <a href="{{ url_for('index') }}" class="secondary-btn">Try Another Search</a>
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+        </section>
+
+        <section class="features container" id="about">
+          <div class="section-heading">
+            <span class="eyebrow">Why it works</span>
+            <h2>Simple, secure, and fast</h2>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card glass-card">
+              <div class="feature-icon">⚡</div>
+              <h3>Fast Search</h3>
+              <p>Retrieve the right memory in seconds using a clean year-month lookup.</p>
+            </article>
+
+            <article class="feature-card glass-card">
+              <div class="feature-icon">📅</div>
+              <h3>Year &amp; Month Filtering</h3>
+              <p>Organize records by exact month and year so every image is easy to find.</p>
+            </article>
+
+            <article class="feature-card glass-card">
+              <div class="feature-icon">🔒</div>
+              <h3>Secure Image Storage</h3>
+              <p>Images are saved safely on disk with validated uploads and protected paths.</p>
+            </article>
+
+            <article class="feature-card glass-card">
+              <div class="feature-icon">📱</div>
+              <h3>Responsive Design</h3>
+              <p>Built to work perfectly across desktop, tablet, and mobile devices.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="how-it-works container">
+          <div class="section-heading">
+            <span class="eyebrow">How it works</span>
+            <h2>From upload to instant discovery</h2>
+          </div>
+
+          <div class="steps">
+            <div class="step-card glass-card">
+              <span class="step-number">1</span>
+              <h3>Admin uploads image</h3>
+            </div>
+            <div class="step-card glass-card">
+              <span class="step-number">2</span>
+              <h3>Admin assigns year and month</h3>
+            </div>
+            <div class="step-card glass-card">
+              <span class="step-number">3</span>
+              <h3>Data is stored in database</h3>
+            </div>
+            <div class="step-card glass-card">
+              <span class="step-number">4</span>
+              <h3>User searches year and month</h3>
+            </div>
+            <div class="step-card glass-card">
+              <span class="step-number">5</span>
+              <h3>Matching image is displayed</h3>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="container footer-content">
+          <div>
+            <h3>Year &amp; Month AI Image Finder</h3>
+            <p>Built with Python, Flask, SQLite and modern web technologies.</p>
+          </div>
+          <a href="{{ url_for('admin_page') }}" class="footer-link">Admin Upload</a>
+        </div>
+      </footer>
+    </div>
+
+    <div id="lightbox" class="lightbox hidden" aria-label="Image preview" aria-modal="true" role="dialog">
+      <button class="lightbox-close" type="button" aria-label="Close preview">×</button>
+      <img src="" alt="Expanded preview" />
+    </div>
+
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script>
+      window.appMessages = {
+        success: {{ success_message|tojson if success_message else 'null' }},
+        error: {{ error_message|tojson if error_message else 'null' }}
+      };
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
